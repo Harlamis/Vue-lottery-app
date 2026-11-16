@@ -3,12 +3,13 @@ import { ref, computed } from "vue";
 import type { Participant, SortField, SortOrder } from "../types";
 import SearchBar from "./SearchBar.vue";
 import BaseButton from "./BaseButton.vue";
+import Modal from "./Modal.vue";
 
 const props = defineProps<{
   participants: Participant[];
 }>();
 
-defineEmits<{
+const emit = defineEmits<{
   (e: "edit", participant: Participant): void;
   (e: "delete", participant: Participant): void;
 }>();
@@ -16,6 +17,13 @@ defineEmits<{
 const searchQuery = ref("");
 const sortField = ref<SortField>(null);
 const sortOrder = ref<SortOrder>("asc");
+const participantToDelete = ref<Participant | null>(null);
+
+const confirmDelete = () => {
+  if (!participantToDelete.value) return;
+  emit("delete", participantToDelete.value);
+  participantToDelete.value = null;
+};
 
 const handleFilter = (query: string) => {
   searchQuery.value = query;
@@ -60,7 +68,9 @@ const processedParticipants = computed(() => {
     <div
       class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
     >
-      <h2 class="text-xl font-bold text-gray-800">Список учасників</h2>
+      <h2 class="text-xl font-bold text-gray-800">
+        Список учасників
+      </h2>
       <SearchBar @filter-by-name="handleFilter" />
     </div>
 
@@ -79,11 +89,18 @@ const processedParticipants = computed(() => {
                 <span v-if="sortField === 'name'">{{
                   sortOrder === "asc" ? "▲" : "▼"
                 }}</span>
-                <span v-else class="text-gray-300">⇅</span>
+                <span
+                  v-else
+                  class="text-gray-300"
+                >⇅</span>
               </div>
             </th>
-            <th class="py-3 px-4">Email</th>
-            <th class="py-3 px-4">Телефон</th>
+            <th class="py-3 px-4">
+              Email
+            </th>
+            <th class="py-3 px-4">
+              Телефон
+            </th>
             <th
               class="py-3 px-4 cursor-pointer select-none"
               @click="toggleSort('dateOfBirth')"
@@ -93,16 +110,26 @@ const processedParticipants = computed(() => {
                 <span v-if="sortField === 'dateOfBirth'">{{
                   sortOrder === "asc" ? "▲" : "▼"
                 }}</span>
-                <span v-else class="text-gray-300">⇅</span>
+                <span
+                  v-else
+                  class="text-gray-300"
+                >⇅</span>
               </div>
             </th>
-            <th class="py-3 px-4 text-center">Редагування</th>
-            <th class="py-3 px-4 text-center">Видалення</th>
+            <th class="py-3 px-4 text-center">
+              Редагування
+            </th>
+            <th class="py-3 px-4 text-center">
+              Видалення
+            </th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-200 text-sm">
           <tr v-if="processedParticipants.length === 0">
-            <td colspan="6" class="py-6 text-center text-gray-400">
+            <td
+              colspan="6"
+              class="py-6 text-center text-gray-400"
+            >
               Учасників не знайдено
             </td>
           </tr>
@@ -111,10 +138,18 @@ const processedParticipants = computed(() => {
             :key="p.id"
             class="hover:bg-gray-50 transition-colors"
           >
-            <td class="py-3 px-4 font-medium text-gray-900">{{ p.name }}</td>
-            <td class="py-3 px-4 text-gray-600">{{ p.email }}</td>
-            <td class="py-3 px-4 text-gray-600">{{ p.phone }}</td>
-            <td class="py-3 px-4 text-gray-600">{{ p.dateOfBirth }}</td>
+            <td class="py-3 px-4 font-medium text-gray-900">
+              {{ p.name }}
+            </td>
+            <td class="py-3 px-4 text-gray-600">
+              {{ p.email }}
+            </td>
+            <td class="py-3 px-4 text-gray-600">
+              {{ p.phone }}
+            </td>
+            <td class="py-3 px-4 text-gray-600">
+              {{ p.dateOfBirth }}
+            </td>
             <td class="py-3 px-4 text-center">
               <BaseButton
                 variant="secondary"
@@ -128,7 +163,7 @@ const processedParticipants = computed(() => {
               <BaseButton
                 variant="danger"
                 class="!px-2 !py-1 text-xs"
-                @click="$emit('delete', p)"
+                @click="participantToDelete = p"
               >
                 Видалити учасника
               </BaseButton>
@@ -138,4 +173,30 @@ const processedParticipants = computed(() => {
       </table>
     </div>
   </div>
+
+  <Modal
+    v-if="participantToDelete"
+    @close="participantToDelete = null"
+  >
+    <template #title>
+      Підтвердження видалення
+    </template>
+    <template #body>
+      Ви дійсно бажаєте видалити учасника {{ participantToDelete.name }}?
+    </template>
+    <template #footer>
+      <BaseButton
+        variant="secondary"
+        @click="participantToDelete = null"
+      >
+        Скасувати
+      </BaseButton>
+      <BaseButton
+        variant="danger"
+        @click="confirmDelete"
+      >
+        Видалити
+      </BaseButton>
+    </template>
+  </Modal>
 </template>
