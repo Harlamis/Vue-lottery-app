@@ -112,14 +112,26 @@ The code is organized around Feature-Sliced Design concepts: application setup a
 
 ## Production build and deployment
 
-Build the application from `client-websystems/`:
+This repository includes a GitHub Actions workflow at [`.github/workflows/publish.yml`](.github/workflows/publish.yml). It builds the app from `client-websystems/` and deploys it to GitHub Pages whenever a commit is pushed to `main`.
+
+To publish the site:
+
+1. Push this repository to GitHub, with the workflow and app changes on the `main` branch.
+2. In the repository, open **Settings → Pages**.
+3. Under **Build and deployment**, set **Source** to **GitHub Actions**.
+4. Open the **Actions** tab and wait for **Deploy to GitHub Pages** to complete successfully. You can also start it manually with **Run workflow**.
+5. Visit `https://harlamis.github.io/ClientWebsystemsLab4/` (or use the URL shown in the workflow deployment).
+
+The workflow sets Vite's base path to the repository name, points the frontend at the public DummyJSON demo API, and adds a `404.html` fallback for Vue Router's history-mode routes. The API URL is bundled into the frontend and is not a secret. If you change the API, update `VITE_API_URL` in the workflow.
+
+To build and preview locally, run these commands from `client-websystems/`:
 
 ```sh
 npm run build
 npm run preview
 ```
 
-Deploy the generated `client-websystems/dist/` directory to a static hosting provider. Configure the host to serve `index.html` as the fallback for application routes, since the app uses Vue Router history mode. Set `VITE_API_URL` in the hosting provider's build environment; Vite embeds it at build time.
+The output is generated in `client-websystems/dist/`.
 
 ## Notes
 
